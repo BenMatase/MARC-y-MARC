@@ -1,8 +1,11 @@
 # MARC-y-MARC
-The repository for the code for the Bucknell MARC Robot Competition
+Contributors: Benjamin Matase, AC Li, Rick (Mark) Moyer, Yash Mittal
+
+The repository for the code for the Bucknell MARC Robot Competition.
 
 TODO
-- Figure out servo
 - Design a 3d hood ornament
 - Get all parts mounted
-- Get components (wires, resistors, photoresistors, etc) we need
+- Get white LEDs
+- come up with plan/algorithm for traversing
+- put code down for wheels (AC)
