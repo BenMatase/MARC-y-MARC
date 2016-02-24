@@ -23,6 +23,8 @@ int servoPos = 90; // variable to store the servo position
 int servoInc = 1;
 int servoPin = 9; //pin to put servo output to
 int dis = 0;
+
+int turnAmt = 0; //How much 
  
 void setup() 
 { 
