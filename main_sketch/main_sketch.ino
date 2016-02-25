@@ -48,13 +48,14 @@ const int disMin = 10;  //min value of obj to be determined "in way"
 
 //WHEELS
 //left motor
-const int speedLPin = 7;    //speed pin for left motor
-const int enableLForPin = 6;   //enable left forward pin
-  const int enableLRevPin = 5;   //enable left forward pin 
+const int speedL = 7;    //speed pin for left motor (ENA)
+const int enLForPin = 6;   //enable left forward pin (IN2)
+  const int enLRevPin = 5;   //enable left forward pin (IN1)
 //right motor
-const int speedR = 4;    //speed pin for right motor
-const int enRFor = 3;   //controller pin 1 for right motor
-const int enRRev = 2;   //controller pin 2 for right motor
+const int speedR = 4;    //speed pin for right motor (ENB)
+const int enRForPin = 3;   //controller pin 1 for right motor (IN4)
+const int enRRevPin = 2;   //controller pin 2 for right motor (IN3)
+const int Speed = 100; // Default speed
 
 int wheelTurn = 0; //Magnitude of turn, I guess could be difference of wheels
                    //(- is left and + is right and 0 is straight)
@@ -80,12 +81,12 @@ void setup()
   pinMode(prRPin, INPUT);
   
   //Wheels
-  pinMode(enL, OUTPUT);
-  pinMode(inL1, OUTPUT);
-  pinMode(inL2, OUTPUT);
-  pinMode(enR, OUTPUT);
-  pinMode(inR1, OUTPUT);
-  pinMode(inR2, OUTPUT);
+  pinMode(speedL, OUTPUT);
+  pinMode(enLForPin, OUTPUT);
+  pinMode(enLRevPin, OUTPUT);
+  pinMode(speedR, OUTPUT);
+  pinMode(enRForPin, OUTPUT);
+  pinMode(enRRevPin, OUTPUT);
   
   //Serial
   Serial.begin(9600);
@@ -145,4 +146,65 @@ void handlePhotores() {
   
   //if hit line, what do?
   //How know if green?
+}
+
+void moveForward() {
+  analogWrite(speedL, Speed);
+  analogWrite(speedR, Speed);
+  digitalWrite(enLForPin, HIGH);
+  digitalWrite(enLRevPin, LOW);
+  digitalWrite(enRForPin, HIGH);
+  digitalWrite(enRRevPin, LOW);
+}
+
+void moveBackward() {
+	analogWrite(speedL, Speed);
+  analogWrite(speedR, Speed);
+  digitalWrite(enLForPin, LOW);
+  digitalWrite(enLRevPin, HIGH);
+  digitalWrite(enRForPin, LOW);
+  digitalWrite(enRRevPin, HIGH);
+}
+
+void moveRight() {
+	analogWrite(speedL, Speed);
+  analogWrite(speedR, Speed);
+  digitalWrite(enLForPin, HIGH);
+  digitalWrite(enLRevPin, LOW);
+  digitalWrite(enRForPin, LOW);
+  digitalWrite(enRRevPin, HIGH);
+}
+
+void moveLeft() {
+	analogWrite(speedL, Speed);
+  analogWrite(speedR, Speed);
+  digitalWrite(enLForPin, LOW);
+  digitalWrite(enLRevPin, HIGH);
+  digitalWrite(enRForPin, HIGH);
+  digitalWrite(enRRevPin, LOW);
+}
+
+void moveStop() {
+	digitalWrite(speedL, LOW);
+	digitalWrite(speedR, LOW);
+}
+
+void quarterRight() {
+	moveRight();
+	delay(500);
+}
+
+void quarterLeft() {
+	moveLeft();
+	delay(500);
+}
+
+void turnaroundL() {
+	moveLeft();
+	delay(1000);
+}
+
+void turnaroundR() {
+	moveRight();
+	delay(1000);
 }
