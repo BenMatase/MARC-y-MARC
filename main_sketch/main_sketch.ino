@@ -20,7 +20,7 @@ Motor setup:    motor
 Photores setup:  power- 5v
                  gnd  - gnd
                  output- prPin1(10), prPin2(11)
-                 resistors - x ohms
+                 resistors - 10 kohms
 */
 
 #include <Servo.h>
@@ -99,6 +99,7 @@ void loop() //might need reordering of handling
   
   //measure distance from sharpIR
   dis = sharp.distance();
+  //Serial.println(dis);
   
   //do wheel things
   handleWheels();
