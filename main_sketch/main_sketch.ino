@@ -15,7 +15,7 @@ SharpIR setup:   black- gnd
                  red  - 5v
                  white- ir(A5)
                  
-Motor setup:    ask AC
+Motor setup:    motor
 
 Photores setup:  power- 5v
                  gnd  - gnd
@@ -47,9 +47,18 @@ const int disMax = 20;  //max value of obj to be determined "in way"
 const int disMin = 10;  //min value of obj to be determined "in way"
 
 //WHEELS
+//left motor
+const int speedLPin = 7;    //speed pin for left motor
+const int enableLForPin = 6;   //enable left forward pin
+  const int enableLRevPin = 5;   //enable left forward pin 
+//right motor
+const int speedR = 4;    //speed pin for right motor
+const int enRFor = 3;   //controller pin 1 for right motor
+const int enRRev = 2;   //controller pin 2 for right motor
+
 int wheelTurn = 0; //Magnitude of turn, I guess could be difference of wheels
                    //(- is left and + is right and 0 is straight)
-int wheelSpeed = 0;    //speed of actual robots, dependent on wheel
+int wheelSpeed = 0;    //speed of actual robots, dependent on wheel (0-255)
 
 //PHOTORES
 const int prLPin = 10;  //pin to hook up left photoresistor to
@@ -60,10 +69,25 @@ const int green = 60;  //same^
  
 void setup() 
 { 
+  //Servo
   myservo.attach(servoPin); // attaches the servo on pin 9 to the servo object 
+  
+  //SharpIR
   pinMode(ir, INPUT);
+  
+  //PhotoRes
   pinMode(prLPin, INPUT);
   pinMode(prRPin, INPUT);
+  
+  //Wheels
+  pinMode(enL, OUTPUT);
+  pinMode(inL1, OUTPUT);
+  pinMode(inL2, OUTPUT);
+  pinMode(enR, OUTPUT);
+  pinMode(inR1, OUTPUT);
+  pinMode(inR2, OUTPUT);
+  
+  //Serial
   Serial.begin(9600);
 } 
  
