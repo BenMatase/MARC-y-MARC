@@ -1,0 +1,7 @@
+Arduino control of DC, Stepper, and servo motors
+
+https://www.youtube.com/watch?v=3A-pcONMSWI&ebc=ANyPxKppPgwZdbjWYBLpCtnUyV7caM1mupA0WHWsWd9cKWDeaJiB3QbGsqKuitubirSiCN_JsTPdsG9Jgwj1mVvsRK20CydcEg
+
+control DC Motors with Arduino + L298N
+
+https://www.youtube.com/watch?v=kv-9mxVaVzE
