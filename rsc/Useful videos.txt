@@ -5,3 +5,7 @@ https://www.youtube.com/watch?v=3A-pcONMSWI&ebc=ANyPxKppPgwZdbjWYBLpCtnUyV7caM1m
 control DC Motors with Arduino + L298N
 
 https://www.youtube.com/watch?v=kv-9mxVaVzE
+
+More motor demo
+
+http://electricgardener.net/2013/09/23/teaching-arduino-robot-drive/
