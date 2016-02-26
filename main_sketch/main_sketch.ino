@@ -38,7 +38,7 @@ Photores setup:  power- 5v
 
 #include <Servo.h>
 #include <SharpIR.h>
- 
+
 //SERVO
 Servo myservo;           // create servo object to control a servo
 
@@ -46,8 +46,8 @@ int servoPos = 90;         // variable to store the servo position
 int servoInc = 1;          //which direction to move servo
 int servoSpeed = 1;        //how fast to rotate servo
 const int servoPin = 9;     //pin to put servo output to
-const int servoMax = 179;  //max degrees for servo to move to
-const int servoMin = 1;    //min degrees for servo to move to
+const int servoMax = 129;  //max degrees for servo to move to
+const int servoMin = 39;    //min degrees for servo to move to
 
 //SHARP IR
 #define ir A5        //Analog pin to connect SharpIR sensor to
@@ -61,14 +61,15 @@ const int disMin = 10;  //min value of obj to be determined "in way"
 
 //WHEELS
 //left motor
-const int speedL = 7;    //speed pin for left motor (ENA)
-const int enLForPin = 6;   //enable left forward pin (IN2)
-  const int enLRevPin = 5;   //enable left forward pin (IN1)
+const int speedR = 7;    //speed pin for left motor (ENA)
+const int enRForPin = 6;   //enable left forward pin (IN2)
+  const int enRRevPin = 5;   //enable left forward pin (IN1)
 //right motor
-const int speedR = 4;    //speed pin for right motor (ENB)
-const int enRForPin = 3;   //controller pin 1 for right motor (IN4)
-const int enRRevPin = 2;   //controller pin 2 for right motor (IN3)
-const int Speed = 100; // Default speed
+const int speedL = 4;    //speed pin for right motor (ENB)
+const int enLForPin = 2;   //controller pin 1 for right motor (IN4)
+const int enLRevPin = 3;   //controller pin 2 for right motor (IN3)
+const int SpeedL = 250; // Default speed
+const int SpeedR = 200;
 
 int wheelTurn = 0; //Magnitude of turn, I guess could be difference of wheels
                    //(- is left and + is right and 0 is straight)
@@ -81,14 +82,15 @@ const int black = 100; //to be experimentally determined what is black
 const int green = 60;  //same^
 const int ledPin = 12;  //pin for the led
 
-//MISC
-enum state {
-  FIND_WALL,
-  HUG_WALL,
-  ROCK,
-  
+int count = 0;
+
+enum state{
+  FIND_A_WALL,
+  HUG_THE_WALL,
+  FIND_THE_WALL
 };
 
+state currState = FIND_A_WALL;
  
 void setup() 
 { 
@@ -109,7 +111,7 @@ void setup()
   pinMode(speedR, OUTPUT);
   pinMode(enRForPin, OUTPUT);
   pinMode(enRRevPin, OUTPUT);
-  
+
   //Serial
   Serial.begin(9600);
 } 
@@ -118,25 +120,39 @@ void loop() //might need reordering of handling
 { 
   //do servo things
   handleServo();
-  
   //measure distance from sharpIR
   dis = sharp.distance();
   Serial.println(dis);
   
-  //do wheel things
-  handleWheels();
+//  if (dis < 30 && dis > 20) {
+//    if(count == 3) {
+//      moveLeft();
+//      delay(2000);
+//    } else {
+//      count++;
+//    }
+//    return;
+//  } 
+
+    if (dis > 30 || dis < 0) {
+      moveForward();
+    } else {
+      moveStop();
+  }
   
   //check photoresistors
-  handlePhotores();
+  //handlePhotores();
 }
 
 void handleWheels() {
-  // collision range
-  if(dis >= disMin && dis <= disMax) { 
-    //start turning by certain amount NOT CORRECT RN
-    wheelTurn = servoPos;
+  if (dis > 30) {
+    moveForward();
+    return;
+  } else {
+    moveLeft();
+    delay(250);
+    return;
   }
-  //TODO figure out
 }
 
 void handleServo() {
@@ -175,8 +191,8 @@ void handlePhotores() {
 }
 
 void moveForward() {
-  analogWrite(speedL, Speed);
-  analogWrite(speedR, Speed);
+  analogWrite(speedL, SpeedL);
+  analogWrite(speedR, SpeedR);
   digitalWrite(enLForPin, HIGH);
   digitalWrite(enLRevPin, LOW);
   digitalWrite(enRForPin, HIGH);
@@ -184,8 +200,8 @@ void moveForward() {
 }
 
 void moveBackward() {
-	analogWrite(speedL, Speed);
-  analogWrite(speedR, Speed);
+  analogWrite(speedL, SpeedL);
+  analogWrite(speedR, SpeedR);
   digitalWrite(enLForPin, LOW);
   digitalWrite(enLRevPin, HIGH);
   digitalWrite(enRForPin, LOW);
@@ -193,44 +209,53 @@ void moveBackward() {
 }
 
 void moveRight() {
-	analogWrite(speedL, Speed);
-  analogWrite(speedR, Speed);
-  digitalWrite(enLForPin, HIGH);
-  digitalWrite(enLRevPin, LOW);
-  digitalWrite(enRForPin, LOW);
-  digitalWrite(enRRevPin, HIGH);
+  analogWrite(speedL, SpeedL);
+  analogWrite(speedR, SpeedR);
+  digitalWrite(enRForPin, HIGH);
+  digitalWrite(enRRevPin, LOW);
+  digitalWrite(enLForPin, LOW);
+  digitalWrite(enLRevPin, HIGH);
 }
 
 void moveLeft() {
-	analogWrite(speedL, Speed);
-  analogWrite(speedR, Speed);
-  digitalWrite(enLForPin, LOW);
-  digitalWrite(enLRevPin, HIGH);
-  digitalWrite(enRForPin, HIGH);
-  digitalWrite(enRRevPin, LOW);
+  analogWrite(speedL, SpeedL);
+  analogWrite(speedR, SpeedR);
+  digitalWrite(enRForPin, LOW);
+  digitalWrite(enRRevPin, HIGH);
+  digitalWrite(enLForPin, HIGH);
+  digitalWrite(enLRevPin, LOW);
 }
 
 void moveStop() {
-	digitalWrite(speedL, LOW);
-	digitalWrite(speedR, LOW);
+  digitalWrite(speedL, LOW);
+  digitalWrite(speedR, LOW);
 }
 
 void quarterRight() {
-	moveRight();
-	delay(500);
+  moveRight();
+  delay(220);
 }
 
 void quarterLeft() {
-	moveLeft();
-	delay(500);
+  moveLeft();
+  delay(250);
 }
 
 void turnaroundL() {
-	moveLeft();
-	delay(1000);
+  moveLeft();
+  delay(1000);
 }
 
 void turnaroundR() {
-	moveRight();
-	delay(1000);
+  moveRight();
+  delay(1000);
 }
+
+boolean isRockAhead() {
+  if (dis > 45) {
+    return false;
+  }
+  return true;
+}
+
+
