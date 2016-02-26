@@ -7,6 +7,19 @@ evironment.
 
 Fun fact, you can't name your sketch main or else the compiler freaks out
 
+Pin key;
+2- Wheels
+3- Wheels
+4- Wheels
+5- Wheels
+6- Wheels
+7- Wheels
+9 - Servo
+A2- pr
+A3- pr
+A5- IR
+
+
 Servo setup:   brown-  gnd
                red  -  5v
                yellow- servoPin(9)
@@ -62,10 +75,19 @@ int wheelTurn = 0; //Magnitude of turn, I guess could be difference of wheels
 int wheelSpeed = 0;    //speed of actual robots, dependent on wheel (0-255)
 
 //PHOTORES
-const int prLPin = 10;  //pin to hook up left photoresistor to
-const int prRPin = 11;  //pin to hook up right photoresistor to
+#define prLPin A3        //Analog pin for right photoresisotr
+#define prRPin A2        //Analog pin for left photoresistor
 const int black = 100; //to be experimentally determined what is black
 const int green = 60;  //same^
+const int ledPin = 12;  //pin for the led
+
+//MISC
+enum state {
+  FIND_WALL,
+  HUG_WALL,
+  ROCK,
+  
+};
 
  
 void setup() 
@@ -99,7 +121,7 @@ void loop() //might need reordering of handling
   
   //measure distance from sharpIR
   dis = sharp.distance();
-  //Serial.println(dis);
+  Serial.println(dis);
   
   //do wheel things
   handleWheels();
@@ -133,6 +155,9 @@ void handlePhotores() {
   //get values from both.
   int prL = analogRead(prLPin);
   int prR = analogRead(prRPin);
+//  Serial.print(prL);
+//  Serial.print(":");
+//  Serial.println(prR);
   
   //determine if we hit a line and what angle
   if(prL > black && prR > black) {
