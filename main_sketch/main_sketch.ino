@@ -39,6 +39,11 @@ Photores setup:  power- 5v
 #include <Servo.h>
 #include <SharpIR.h>
 
+#define COLL_DIST 20 // Set maximum distance to avoid collision
+#define TURN_DIST COLL_DIST+10 // Sets maximum distance to turn 
+#define MAX_SPEED 200
+#define MAX_SPEED_OFFSET 10              
+
 //SERVO
 Servo myservo;           // create servo object to control a servo
 
@@ -56,8 +61,14 @@ const int servoMin = 39;    //min degrees for servo to move to
 SharpIR sharp(ir, 10, 90, model); // creates a distance sensor object
 
 int dis = 0;        //var to hold reading from SharpIR sensor
-const int disMax = 20;  //max value of obj to be determined "in way"
-const int disMin = 10;  //min value of obj to be determined "in way"
+int disMax = 0;  //max value of obj to be determined "in way"
+int angMax = 0;  //max value of angle to be determined "in way"
+int rightMax = 0;
+int leftMax = 0;
+int frontMax = 0;
+int course = 0;
+int pos = 0;
+int speedSet = 0;
 
 //WHEELS
 //left motor
@@ -68,35 +79,19 @@ const int enRForPin = 6;   //enable left forward pin (IN2)
 const int speedL = 4;    //speed pin for right motor (ENB)
 const int enLForPin = 2;   //controller pin 1 for right motor (IN4)
 const int enLRevPin = 3;   //controller pin 2 for right motor (IN3)
-const int SpeedL = 250; // Default speed
-const int SpeedR = 200;
-
-int wheelTurn = 0; //Magnitude of turn, I guess could be difference of wheels
-                   //(- is left and + is right and 0 is straight)
-int wheelSpeed = 0;    //speed of actual robots, dependent on wheel (0-255)
+const int SpeedL = 230; // Default speed
+const int SpeedR = 230;
 
 //PHOTORES
 #define prLPin A3        //Analog pin for right photoresisotr
 #define prRPin A2        //Analog pin for left photoresistor
-const int black = 100; //to be experimentally determined what is black
-const int green = 60;  //same^
+const int black = 700; // black left < 520, right < 650
+const int green = 700;  //same^ 690 - 770
+// white is > 830
 const int ledPin = 12;  //pin for the led
-
-int count = 0;
-
-enum state{
-  FIND_A_WALL,
-  HUG_THE_WALL,
-  FIND_THE_WALL
-};
-
-state currState = FIND_A_WALL;
  
 void setup() 
-{ 
-  //Servo
-  myservo.attach(servoPin); // attaches the servo on pin 9 to the servo object 
-  
+{  
   //SharpIR
   pinMode(ir, INPUT);
   
@@ -111,63 +106,111 @@ void setup()
   pinMode(speedR, OUTPUT);
   pinMode(enRForPin, OUTPUT);
   pinMode(enRRevPin, OUTPUT);
-
+  
   //Serial
   Serial.begin(9600);
+  //Servo
+   myservo.attach(servoPin); // attaches the servo on pin 9 to the servo object
+   myservo.write(90); // tells the servo to face forward
+   delay(2000); // delay for 2 seconds
+   checkPath(); // Find the best path to travel
+   myservo.write(90); // make sure facing forward
+   moveForward(); // move forward
 } 
  
 void loop() //might need reordering of handling
 { 
-  //do servo things
-  handleServo();
-  //measure distance from sharpIR
-  dis = sharp.distance();
-  Serial.println(dis);
   
-//  if (dis < 30 && dis > 20) {
-//    if(count == 3) {
-//      moveLeft();
-//      delay(2000);
-//    } else {
-//      count++;
-//    }
-//    return;
-//  } 
-
-    if (dis > 30 || dis < 0) {
-      moveForward();
-    } else {
-      moveStop();
-  }
-  
+   checkPath();
   //check photoresistors
-  //handlePhotores();
+//  Serial.println(isBlack);
+   moveForward();
 }
 
-void handleWheels() {
-  if (dis > 30) {
-    moveForward();
-    return;
-  } else {
-    moveLeft();
-    delay(250);
-    return;
+void checkPath() {
+  int curLeft = 0;
+  int curFront = 0;
+  int curRight = 0;
+  int curDist = 0;
+  boolean isBlack = handlePhotores();
+  if (isBlack) {
+    moveStop();
+    delay(500);
+    moveBackward();
+    delay(500);
+    turnaround();
   }
+    curDist = sharp.distance();
+    int counter;
+    for (counter = 0; counter < 5; counter++) {
+      curDist = sharp.distan
+    }
+    
+    Serial.println(curDist);
+    if (curDist < COLL_DIST){
+      checkCourse(); 
+    }
+    if (curDist < TURN_DIST) { // If cannot turn
+    	changePath();
+    }
+    if (curDist > COLL_DIST || curDist < 0) {
+    	angMax = pos;
+    }
+    if (curDist > curLeft && pos > 90) {
+    	curLeft = curDist;
+    }
+    if (curDist > curFront && pos == 90) {
+    	curFront = curDist;
+    }
+    if (curDist > curRight && pos < 90) {
+    	curRight = curDist;
+    }
+    leftMax = curLeft;
+    rightMax = curRight;
+    frontMax = curFront;
 }
 
-void handleServo() {
-  //oscillates between servoMax and servoMin
-  if(servoPos > servoMax) {
-    servoInc = -1;
-  } else if(servoPos < servoMin) {
-    servoInc = 1;
-  }
+void setCourse() { // Sets direction
+	if (angMax < 90) {
+		moveRight();
+	} 
+	if (angMax > 90) {
+		moveLeft();
+	}
+	leftMax = 0;
+	rightMax = 0;
+	frontMax = 0;
+}
+
+void checkCourse() {
+	moveBackward();
+  delay(500);
+	moveStop();
+	setCourse();
+}
+
+void changePath() {
+	if (pos < 90) {
+		veerLeft();
+	}
+	if (pos > 90) {
+		veerRight();
+	}
+}
+
+// void handleServo() {
+//   //oscillates between servoMax and servoMin
+//   if(servoPos > servoMax) {
+//     servoInc = -1;
+//   } else if(servoPos < servoMin) {
+//     servoInc = 1;
+//   }
   
-  servoPos += servoInc * servoSpeed;
-  myservo.write(servoPos);
-}
+//   servoPos += servoInc * servoSpeed;
+//   myservo.write(servoPos);
+// }
 
-void handlePhotores() {
+boolean handlePhotores() {
   //get values from both.
   int prL = analogRead(prLPin);
   int prR = analogRead(prRPin);
@@ -176,86 +219,109 @@ void handlePhotores() {
 //  Serial.println(prR);
   
   //determine if we hit a line and what angle
-  if(prL > black && prR > black) {
-    //black for both
-  } else if(prL > black && prR <= black) {
-    //black for left, white for right
-  } else if(prL <= black && prR > black) {
-    //white for left, black for right
+  if(prL < 400  || prR < 600) {
+    return true;
   } else {
-    //white for both 
+    return false;
   }
+//  } else if(prL > black && prR <= black) {
+//    //black for left, white for right
+//  } else if(prL <= black && prR > black) {
+//    //white for left, black for right
+//  } else {
+//    //white for both 
+//  }
   
   //if hit line, what do?
   //How know if green?
 }
 
 void moveForward() {
-  analogWrite(speedL, SpeedL);
-  analogWrite(speedR, SpeedR);
+	// Make left and right motors go forward
   digitalWrite(enLForPin, HIGH);
   digitalWrite(enLRevPin, LOW);
   digitalWrite(enRForPin, HIGH);
   digitalWrite(enRRevPin, LOW);
+  // slowly speed up both motors
+  for (speedSet = 0; speedSet < MAX_SPEED; speedSet += 2) {
+  	analogWrite(speedL, speedSet + MAX_SPEED_OFFSET);
+  	analogWrite(speedR, speedSet);
+  	delay(5);
+  }
 }
 
 void moveBackward() {
-  analogWrite(speedL, SpeedL);
-  analogWrite(speedR, SpeedR);
+  // Make both motors rotate backward
   digitalWrite(enLForPin, LOW);
   digitalWrite(enLRevPin, HIGH);
   digitalWrite(enRForPin, LOW);
   digitalWrite(enRRevPin, HIGH);
+  // slowly speed up
+  for (speedSet = 0; speedSet < MAX_SPEED; speedSet += 2) {
+  	analogWrite(speedL, speedSet + MAX_SPEED_OFFSET);
+  	analogWrite(speedR, speedSet);
+  	delay(5);
+  }
 }
 
 void moveRight() {
-  analogWrite(speedL, SpeedL);
-  analogWrite(speedR, SpeedR);
   digitalWrite(enRForPin, HIGH);
   digitalWrite(enRRevPin, LOW);
   digitalWrite(enLForPin, LOW);
   digitalWrite(enLRevPin, HIGH);
+  analogWrite(speedL, 180);
+  analogWrite(speedR, 210);
+  delay(400);
+  digitalWrite(enLForPin, HIGH);
+  digitalWrite(enLRevPin, LOW);
+  digitalWrite(enRForPin, HIGH);
+  digitalWrite(enRRevPin, LOW);
 }
 
 void moveLeft() {
-  analogWrite(speedL, SpeedL);
-  analogWrite(speedR, SpeedR);
   digitalWrite(enRForPin, LOW);
   digitalWrite(enRRevPin, HIGH);
   digitalWrite(enLForPin, HIGH);
   digitalWrite(enLRevPin, LOW);
+  analogWrite(speedL, 180);
+  analogWrite(speedR, 210);
+  delay(400);
+  digitalWrite(enLForPin, HIGH);
+  digitalWrite(enLRevPin, LOW);
+  digitalWrite(enRForPin, HIGH);
+  digitalWrite(enRRevPin, LOW);
 }
 
 void moveStop() {
   digitalWrite(speedL, LOW);
   digitalWrite(speedR, LOW);
+  digitalWrite(enLForPin, LOW);
+  digitalWrite(enLRevPin, LOW);
+  digitalWrite(enRForPin, LOW);
+  digitalWrite(enRRevPin, LOW);
 }
 
-void quarterRight() {
-  moveRight();
-  delay(220);
+void veerRight() {
+	digitalWrite(enRForPin, LOW);
+  digitalWrite(enRRevPin, HIGH);
+  analogWrite(speedR, 180);
+  delay(400);
+  digitalWrite(enRForPin, HIGH);
+  digitalWrite(enRRevPin, LOW);
+  analogWrite(speedR, 180);
 }
 
-void quarterLeft() {
-  moveLeft();
-  delay(250);
+void veerLeft() {
+	digitalWrite(enLForPin, LOW);
+  digitalWrite(enLRevPin, HIGH);
+  delay(400);
+  digitalWrite(enLForPin, HIGH);
+  digitalWrite(enLRevPin, LOW);
 }
 
-void turnaroundL() {
+void turnaround() {
   moveLeft();
   delay(1000);
-}
-
-void turnaroundR() {
-  moveRight();
-  delay(1000);
-}
-
-boolean isRockAhead() {
-  if (dis > 45) {
-    return false;
-  }
-  return true;
 }
 
 
