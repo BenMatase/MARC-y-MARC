@@ -1,11 +1,6 @@
 # MARC-y-MARC
-Contributors: Benjamin Matase, AC Li, Rick (Mark) Moyer, Yash Mittal
+Contributions (The Funky Bunch): Benjamin Matase, AC Li, Rick (Mark) Moyer, Yash Mittal
 
-The repository for the code for the Bucknell MARC Robot Competition.
+This project was built during a week-long competition organized by Makers and Robotics Club at Bucknell University. The event was sponsored by KEEN (Kern Entrepreneurship Education Network).
 
-TODO
-- Design a 3d hood ornament
-- Get all parts mounted
-- Get white LEDs
-- come up with plan/algorithm for traversing
-- put code down for wheels (AC)
+We designed and built a Mars Rover using an Arduino, chassis, IR sensor and servo, among other circuit components. Our robot successfully dodged all components within specific boundaries and made past the finish line in second to best timing.
